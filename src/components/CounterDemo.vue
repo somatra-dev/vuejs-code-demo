@@ -19,14 +19,7 @@ async function handleAsyncIncrement() {
 
 <template>
   <div class="w-full max-w-xl mx-auto my-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-    <!-- Header Badge -->
-    <div class="flex items-center justify-between mb-4">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        Composable State
-      </span>
-      <span class="text-xs text-slate-400 font-mono">0 KB External Overhead</span>
-    </div>
+  
 
     <!-- Title -->
     <h2 class="text-2xl font-bold text-white tracking-tight">Counter Showcase</h2>
