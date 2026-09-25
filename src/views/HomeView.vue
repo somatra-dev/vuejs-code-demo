@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import CounterDemo from '../components/CounterDemo.vue'
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
+  <main class="w-full py-4">
+    <CounterDemo />
   </main>
 </template>

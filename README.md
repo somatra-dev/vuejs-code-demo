@@ -1,42 +1,92 @@
-# slide-code-demo
+# State Management: Composable Pattern
 
-This template should help get you started developing with Vue 3 in Vite.
+This branch demonstrates state management using native Vue 3 **Composables** (`ref`, `reactive`, `computed`), styled with **Tailwind CSS**.
 
-## Recommended IDE Setup
+---
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🏛️ The 4 Pillars
 
-## Recommended Browser Setup
+### 1. WHAT is it?
+Composables utilize Vue 3's built-in Reactivity API. By defining reactive primitives (`ref`, `reactive`) at module scope (outside of an exported function), the state becomes a **module-level singleton** shared across all components that invoke the composable function.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### 2. WHY use it?
+* **Zero Overhead (0 KB):** Built directly into Vue core runtime. No extra dependencies or libraries needed.
+* **Idiomatic Composition API:** Reuses the exact same syntax, mental model, and functions used inside `.vue` components.
+* **First-Class TypeScript:** Native type inference for all state properties, computed values, and action parameters.
+* **No Boilerplate:** Direct mutation or clean helper functions without requiring actions, mutations, or dispatch wrappers.
 
-## Type Support for `.vue` Imports in TS
+### 3. WHEN to use it?
+* **Local & Feature State:** Modals, toast/notification systems, theme toggles, multi-step wizards.
+* **Reusable Packages & Component Libraries:** Distributing shared state without imposing external store dependencies on consumers.
+* **Small to Medium SPAs:** Simple applications where a full-blown store library introduces unnecessary complexity.
+* ⚠️ **Caution in SSR:** Module-level singletons can lead to cross-request state pollution in Server-Side Rendering (Nuxt / Node) unless properly scoped using Nuxt's `useState()` or Vue's `provide`/`inject`.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 4. HOW does it work?
 
-## Customize configuration
+#### Implementation (`src/composables/useCounter.ts`):
+```ts
+import { ref, computed } from 'vue'
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+// Module-level singleton state
+const count = ref<number>(0)
+const history = ref<string[]>([])
 
-## Project Setup
+export function useCounter() {
+  // Computed getters
+  const doubleCount = computed(() => count.value * 2)
+  const isEven = computed(() => count.value % 2 === 0)
+
+  // Actions
+  function increment() {
+    count.value++
+  }
+
+  function decrement() {
+    count.value--
+  }
+
+  function reset() {
+    count.value = 0
+  }
+
+  async function incrementAsync(amount = 5) {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    count.value += amount
+  }
+
+  return { count, history, doubleCount, isEven, increment, decrement, reset, incrementAsync }
+}
+```
+
+#### Usage in Component (`src/components/CounterDemo.vue`):
+```vue
+<script setup lang="ts">
+import { useCounter } from '../composables/useCounter'
+
+const { count, doubleCount, isEven, increment, decrement, reset, incrementAsync } = useCounter()
+</script>
+
+<template>
+  <div>
+    <p>Count: {{ count }} (Double: {{ doubleCount }})</p>
+    <button @click="increment">+1 Increment</button>
+    <button @click="decrement">-1 Decrement</button>
+    <button @click="incrementAsync(5)">+5 Async</button>
+  </div>
+</template>
+```
+
+---
+
+## 🚀 How to Run the Demo
 
 ```sh
+# 1. Install dependencies
 pnpm install
-```
 
-### Compile and Hot-Reload for Development
-
-```sh
+# 2. Run dev server
 pnpm dev
-```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
+# 3. Type-check & build
 pnpm build
 ```
