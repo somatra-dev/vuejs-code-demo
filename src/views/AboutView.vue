@@ -2,31 +2,31 @@
   <div class="max-w-md mx-auto space-y-6">
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
       <h1 class="text-xl font-bold text-white tracking-tight">
-        Deep Dive: <code class="text-emerald-400 font-mono">watch</code> & <code class="text-emerald-400 font-mono">watchEffect</code>
+        Deep Dive: <code class="text-emerald-400 font-mono">shallowRef&lt;T&gt;(val)</code>
       </h1>
       <p class="text-xs text-slate-300 leading-relaxed">
-        Primitives for executing explicit side effects when reactive state updates.
+        Performance-optimized ref that only tracks `.value` reassignment without proxying nested properties.
       </p>
 
       <div class="space-y-3 pt-3 border-t border-slate-800 text-xs text-slate-300">
         <div>
-          <h3 class="font-semibold text-emerald-400">1. `watch` (Explicit & Lazy)</h3>
+          <h3 class="font-semibold text-emerald-400">1. Shallow Reactivity</h3>
           <p class="text-slate-400 mt-0.5">
-            Explicitly tracks specified sources (ref, reactive getter, array). Lazy by default and provides previous and current values.
+            Mutating nested properties (<code class="text-slate-400 font-mono">data.value.count++</code>) does not trigger reactivity or DOM updates because the inner object is raw and not wrapped in an ES6 Proxy.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">2. `watchEffect` (Automatic & Eager)</h3>
+          <h3 class="font-semibold text-emerald-400">2. External Class Instances</h3>
           <p class="text-slate-400 mt-0.5">
-            Runs immediately and automatically tracks any reactive dependency synchronously read inside the callback.
+            Ideal for storing 3rd-party library instances (Three.js objects, Chart.js instances, Mapbox) that break when wrapped in an ES6 Proxy.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">3. Async Cleanup (`onCleanup`)</h3>
+          <h3 class="font-semibold text-emerald-400">3. Explicit Triggering</h3>
           <p class="text-slate-400 mt-0.5">
-            Allows registering cleanup logic (e.g. aborting an HTTP fetch or clearing timeouts) before the effect re-runs or when the component unmounts.
+            You can manually trigger updates using <code class="text-emerald-400 font-mono">triggerRef(data)</code> or by replacing <code class="text-emerald-400 font-mono">data.value = &#123; ... &#125;</code>.
           </p>
         </div>
       </div>

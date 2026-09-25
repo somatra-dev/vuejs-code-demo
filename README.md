@@ -1,14 +1,15 @@
-# Vue 3 Reactivity: `watch` & `watchEffect` Demo
+# Vue 3 Reactivity: `shallowRef<T>(val)` Demo
 
-This branch (`watch_reactive`) demonstrates reactive side-effect handling using `watch()` and `watchEffect()`.
+This branch (`shallow_ref_reactive`) demonstrates Vue 3's shallow reactivity primitive: `shallowRef()`.
 
 ---
 
 ## 📌 Core Concept
 
-- **`watch` (Explicit & Lazy):** Explicitly watches dependencies, runs only when they change, and provides `(newValue, oldValue)`.
-- **`watchEffect` (Automatic & Eager):** Runs immediately, automatically tracks any reactive state read during execution.
-- **Async Cleanup (`onCleanup`):** Cancels in-flight requests or tears down subscriptions when reactive sources change rapidly.
+- **Shallow Tracking:** Only tracks `.value` reassignment.
+- **No Deep Proxying:** Nested properties remain raw and unproxied, improving performance for massive datasets.
+- **3rd-Party Instances:** Prevents breakage when storing complex class instances (e.g. Monaco Editor, Three.js scenes, Leaflet/Mapbox) that fail when proxied.
+- **Manual Trigger:** Force DOM updates using `triggerRef(ref)`.
 
 ---
 
@@ -16,7 +17,7 @@ This branch (`watch_reactive`) demonstrates reactive side-effect handling using 
 
 ```sh
 # Switch to this branch
-git checkout watch_reactive
+git checkout shallow_ref_reactive
 
 # Install dependencies (if needed)
 pnpm install
@@ -29,32 +30,26 @@ pnpm dev
 
 ## 💡 Key Patterns Demonstrated
 
-### 1. Explicit Watcher
+### 1. Nested Mutation (Does NOT update DOM)
 ```ts
-import { ref, watch } from 'vue'
+import { shallowRef } from 'vue'
 
-const count = ref(0)
+const data = shallowRef({ count: 0 })
 
-watch(count, (newVal, oldVal) => {
-  console.log(`Count changed from ${oldVal} to ${newVal}`)
-})
+// ❌ In-memory update only; does NOT trigger reactivity
+data.value.count++
 ```
 
-### 2. Async Cancellation with `onCleanup`
+### 2. Manual Trigger via `triggerRef`
 ```ts
-watch(query, (newQuery, _old, onCleanup) => {
-  const controller = new AbortController()
-  onCleanup(() => controller.abort())
+import { triggerRef } from 'vue'
 
-  fetch(`/api/search?q=${newQuery}`, { signal: controller.signal })
-})
+data.value.count++
+triggerRef(data) // ✅ Forces DOM update
 ```
 
-### 3. Automatic Tracking with `watchEffect`
+### 3. Replacing `.value` Entirely (Recommended)
 ```ts
-import { watchEffect } from 'vue'
-
-watchEffect(() => {
-  console.log(`Current count: ${count.value}`)
-})
+// ✅ Triggers DOM update immediately
+data.value = { count: data.value.count + 1 }
 ```

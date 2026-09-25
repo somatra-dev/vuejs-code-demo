@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import WatchDemo from '../components/WatchDemo.vue'
+import ShallowRefDemo from '../components/ShallowRefDemo.vue'
 </script>
 
 <template>
   <div class="space-y-6">
-    <WatchDemo />
+    <ShallowRefDemo />
   </div>
 </template>
