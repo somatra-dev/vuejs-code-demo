@@ -1,85 +1,52 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <!-- Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <!-- Logo & Badge -->
+        <div class="flex items-center gap-3">
+          <RouterLink to="/" class="font-bold text-lg text-white hover:text-emerald-400 transition-colors">
+            Reactivity Showcase
+          </RouterLink>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            ref&lt;T&gt;
+          </span>
+        </div>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <!-- Navigation Links -->
+        <div class="flex items-center gap-2">
+          <nav class="flex items-center gap-1 text-sm font-medium">
+            <RouterLink
+              to="/"
+              class="px-3 py-1.5 rounded-lg transition-colors text-slate-400 hover:text-white"
+              active-class="!text-emerald-400 !bg-slate-800"
+            >
+              Demo
+            </RouterLink>
+            <RouterLink
+              to="/about"
+              class="px-3 py-1.5 rounded-lg transition-colors text-slate-400 hover:text-white"
+              active-class="!text-emerald-400 !bg-slate-800"
+            >
+              About
+            </RouterLink>
+          </nav>
+        </div>
+      </div>
+    </header>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
+      <RouterView />
+    </main>
 
-  <RouterView />
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+      Vue 3 + Vite + Tailwind CSS · Reactivity Core Showcase
+    </footer>
+  </div>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
