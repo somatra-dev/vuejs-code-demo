@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import ComputedDemo from '../components/ComputedDemo.vue'
+import WatchDemo from '../components/WatchDemo.vue'
 </script>
 
 <template>
   <div class="space-y-6">
-    <ComputedDemo />
+    <WatchDemo />
   </div>
 </template>

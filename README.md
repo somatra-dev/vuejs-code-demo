@@ -1,15 +1,14 @@
-# Vue 3 Reactivity: `computed<T>(getter)` Demo
+# Vue 3 Reactivity: `watch` & `watchEffect` Demo
 
-This branch (`computed_reactive`) demonstrates Vue 3's cached derived reactivity primitive: `computed()`.
+This branch (`watch_reactive`) demonstrates reactive side-effect handling using `watch()` and `watchEffect()`.
 
 ---
 
 ## 📌 Core Concept
 
-- **Cached Evaluation:** Only recomputes when tracked reactive dependencies change.
-- **Lazy Evaluation:** Only evaluated when read by a template or another watcher/computed.
-- **Purity:** Getters must remain pure without side-effects.
-- **Writable Computed:** Supports `get` and `set` for seamless two-way binding with `v-model`.
+- **`watch` (Explicit & Lazy):** Explicitly watches dependencies, runs only when they change, and provides `(newValue, oldValue)`.
+- **`watchEffect` (Automatic & Eager):** Runs immediately, automatically tracks any reactive state read during execution.
+- **Async Cleanup (`onCleanup`):** Cancels in-flight requests or tears down subscriptions when reactive sources change rapidly.
 
 ---
 
@@ -17,7 +16,7 @@ This branch (`computed_reactive`) demonstrates Vue 3's cached derived reactivity
 
 ```sh
 # Switch to this branch
-git checkout computed_reactive
+git checkout watch_reactive
 
 # Install dependencies (if needed)
 pnpm install
@@ -30,35 +29,32 @@ pnpm dev
 
 ## 💡 Key Patterns Demonstrated
 
-### 1. Read-Only Computed (Cached)
+### 1. Explicit Watcher
 ```ts
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 
-const items = ref([{ price: 100, qty: 2 }])
+const count = ref(0)
 
-const total = computed(() => {
-  return items.value.reduce((sum, item) => sum + item.price * item.qty, 0)
+watch(count, (newVal, oldVal) => {
+  console.log(`Count changed from ${oldVal} to ${newVal}`)
 })
 ```
 
-### 2. Writable Computed (get / set)
+### 2. Async Cancellation with `onCleanup`
 ```ts
-const firstName = ref('Chey')
-const lastName = ref('Somatra')
+watch(query, (newQuery, _old, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
 
-const fullName = computed({
-  get: () => `${firstName.value} ${lastName.value}`,
-  set: (val) => {
-    const [first, ...rest] = val.split(' ')
-    firstName.value = first || ''
-    lastName.value = rest.join(' ')
-  }
+  fetch(`/api/search?q=${newQuery}`, { signal: controller.signal })
 })
 ```
 
----
+### 3. Automatic Tracking with `watchEffect`
+```ts
+import { watchEffect } from 'vue'
 
-## ⚠️ Common Gotchas
-
-1. **Side Effects in Computed:** Never trigger async operations or mutate other state inside a computed getter. Use `watch` or `watchEffect` for side effects.
-2. **Mutating Read-Only Computed:** Calling `total.value = 50` on a read-only computed produces a console warning. Use writable computed if setters are needed.
+watchEffect(() => {
+  console.log(`Current count: ${count.value}`)
+})
+```
