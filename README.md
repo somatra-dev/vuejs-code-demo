@@ -1,14 +1,15 @@
-# Vue 3 Reactivity: `reactive<T>(obj)` Demo
+# Vue 3 Reactivity: `computed<T>(getter)` Demo
 
-This branch (`reactive_reactive`) demonstrates Vue 3's deep object reactivity primitive: `reactive()`.
+This branch (`computed_reactive`) demonstrates Vue 3's cached derived reactivity primitive: `computed()`.
 
 ---
 
 ## 📌 Core Concept
 
-- **Deep ES6 Proxy:** Returns a deeply reactive proxy of a JavaScript object, array, `Map`, or `Set`.
-- **Direct Access:** No `.value` is required when reading or writing properties (`state.count++`).
-- **Objects Only:** Primitives cannot be wrapped directly by `reactive()` because proxies only intercept object property operations.
+- **Cached Evaluation:** Only recomputes when tracked reactive dependencies change.
+- **Lazy Evaluation:** Only evaluated when read by a template or another watcher/computed.
+- **Purity:** Getters must remain pure without side-effects.
+- **Writable Computed:** Supports `get` and `set` for seamless two-way binding with `v-model`.
 
 ---
 
@@ -16,7 +17,7 @@ This branch (`reactive_reactive`) demonstrates Vue 3's deep object reactivity pr
 
 ```sh
 # Switch to this branch
-git checkout reactive_reactive
+git checkout computed_reactive
 
 # Install dependencies (if needed)
 pnpm install
@@ -29,35 +30,35 @@ pnpm dev
 
 ## 💡 Key Patterns Demonstrated
 
-### 1. State Declaration & Mutation
+### 1. Read-Only Computed (Cached)
 ```ts
-import { reactive } from 'vue'
+import { ref, computed } from 'vue'
 
-const state = reactive({
-  count: 0,
-  user: { name: 'Chey Somatra', role: 'Dev' },
-  tags: ['Vue 3']
+const items = ref([{ price: 100, qty: 2 }])
+
+const total = computed(() => {
+  return items.value.reduce((sum, item) => sum + item.price * item.qty, 0)
 })
-
-state.count++ // No .value needed
-state.user.role = 'Tech Lead' // Deep reactivity works
-state.tags.push('Reactivity')
 ```
 
-### 2. Preserving Reactivity with `toRefs`
+### 2. Writable Computed (get / set)
 ```ts
-import { toRefs } from 'vue'
+const firstName = ref('Chey')
+const lastName = ref('Somatra')
 
-// ❌ Destructuring breaks reactivity:
-// const { count } = state 
-
-// ✅ Preserves reactivity by converting properties to refs:
-const { count } = toRefs(state)
+const fullName = computed({
+  get: () => `${firstName.value} ${lastName.value}`,
+  set: (val) => {
+    const [first, ...rest] = val.split(' ')
+    firstName.value = first || ''
+    lastName.value = rest.join(' ')
+  }
+})
 ```
 
 ---
 
 ## ⚠️ Common Gotchas
 
-1. **Reassigning the Root Object:** Reassigning `state = reactive(...)` breaks the reactivity link with templates. Always mutate properties in-place.
-2. **Direct Destructuring:** Copies primitive values out of the proxy, severing tracking. Use `toRefs()` instead.
+1. **Side Effects in Computed:** Never trigger async operations or mutate other state inside a computed getter. Use `watch` or `watchEffect` for side effects.
+2. **Mutating Read-Only Computed:** Calling `total.value = 50` on a read-only computed produces a console warning. Use writable computed if setters are needed.

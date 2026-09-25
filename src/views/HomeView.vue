@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import ReactiveDemo from '../components/ReactiveDemo.vue'
+import ComputedDemo from '../components/ComputedDemo.vue'
 </script>
 
 <template>
   <div class="space-y-6">
-    <ReactiveDemo />
+    <ComputedDemo />
   </div>
 </template>

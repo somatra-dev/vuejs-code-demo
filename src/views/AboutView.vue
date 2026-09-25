@@ -2,31 +2,31 @@
   <div class="max-w-md mx-auto space-y-6">
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
       <h1 class="text-xl font-bold text-white tracking-tight">
-        Deep Dive: <code class="text-emerald-400 font-mono">reactive&lt;T&gt;(obj)</code>
+        Deep Dive: <code class="text-emerald-400 font-mono">computed&lt;T&gt;(getter)</code>
       </h1>
       <p class="text-xs text-slate-300 leading-relaxed">
-        Returns a deeply reactive ES6 Proxy of a JavaScript object, array, Map, or Set.
+        Lazily evaluated, cached reactive reference derived from other reactive dependencies.
       </p>
 
       <div class="space-y-3 pt-3 border-t border-slate-800 text-xs text-slate-300">
         <div>
-          <h3 class="font-semibold text-emerald-400">1. No `.value` Needed</h3>
+          <h3 class="font-semibold text-emerald-400">1. Dependency Caching</h3>
           <p class="text-slate-400 mt-0.5">
-            Since it returns a direct proxy of the object, you read and mutate properties directly: <code class="text-emerald-400 font-mono">state.count++</code>.
+            Computed properties only re-evaluate when their tracked reactive dependencies change. If the component re-renders due to unrelated state, the cached value is returned immediately.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">2. Objects Only</h3>
+          <h3 class="font-semibold text-emerald-400">2. Getters Must Be Pure</h3>
           <p class="text-slate-400 mt-0.5">
-            ES6 Proxies only intercept property access on objects. Passing primitives (<code class="text-slate-400 font-mono">reactive(0)</code>) will not work.
+            Never perform side-effects (API calls, state mutations, console logging) inside a computed getter. Use <code class="text-emerald-400 font-mono">watch</code> for side effects.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">3. Destructuring Pitfall</h3>
+          <h3 class="font-semibold text-emerald-400">3. Writable Computed</h3>
           <p class="text-slate-400 mt-0.5">
-            Destructuring properties directly copies primitive values and severs reactivity. Use <code class="text-emerald-400 font-mono">toRefs(state)</code> or <code class="text-emerald-400 font-mono">toRef(state, 'key')</code> to keep reactive connections.
+            Can accept an object with <code class="text-emerald-400 font-mono">get()</code> and <code class="text-emerald-400 font-mono">set()</code> for two-way bindings with <code class="text-emerald-400 font-mono">v-model</code>.
           </p>
         </div>
       </div>
