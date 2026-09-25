@@ -35,20 +35,12 @@ async function handleAsyncIncrement() {
 </script>
 
 <template>
-  <div class="w-full max-w-xl mx-auto my-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-    <!-- Header Badge -->
-    <div class="flex items-center justify-between mb-4">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20">
-        <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
-        Vuex 4 (Legacy Flux)
-      </span>
-      <span class="text-xs text-slate-400 font-mono">Mutations & Actions</span>
-    </div>
-
+  <div class="w-full mx-auto my-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
     <!-- Title -->
     <h2 class="text-2xl font-bold text-white tracking-tight">Counter Showcase</h2>
     <p class="text-sm text-slate-400 mt-1">
-      Powered by Vuex 4 Flux architecture with <code class="text-violet-400 font-mono">useStore()</code>
+      Powered by Vuex 4 Flux architecture with
+      <code class="text-violet-400 font-mono">useStore()</code>
     </p>
 
     <!-- Metrics Grid -->
@@ -59,15 +51,27 @@ async function handleAsyncIncrement() {
       </div>
 
       <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 text-center">
-        <span class="block text-xs uppercase tracking-wider text-slate-400 font-medium">Double</span>
-        <span class="block text-3xl font-extrabold text-violet-400 mt-1 font-mono">{{ doubleCount }}</span>
+        <span class="block text-xs uppercase tracking-wider text-slate-400 font-medium"
+          >Double</span
+        >
+        <span class="block text-3xl font-extrabold text-violet-400 mt-1 font-mono">{{
+          doubleCount
+        }}</span>
       </div>
 
-      <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 text-center flex flex-col justify-center items-center">
-        <span class="block text-xs uppercase tracking-wider text-slate-400 font-medium mb-1.5">Parity</span>
+      <div
+        class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-3 text-center flex flex-col justify-center items-center"
+      >
+        <span class="block text-xs uppercase tracking-wider text-slate-400 font-medium mb-1.5"
+          >Parity</span
+        >
         <span
           class="inline-block px-2.5 py-0.5 rounded-md text-xs font-bold font-mono tracking-wider"
-          :class="isEven ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'"
+          :class="
+            isEven
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+          "
         >
           {{ isEven ? 'EVEN' : 'ODD' }}
         </span>
