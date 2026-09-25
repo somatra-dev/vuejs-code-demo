@@ -13,7 +13,7 @@ import { RouterLink, RouterView } from 'vue-router'
             Reactivity Showcase
           </RouterLink>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            ref&lt;T&gt;
+            reactive&lt;T&gt;
           </span>
         </div>
 

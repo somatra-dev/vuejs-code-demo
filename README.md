@@ -1,15 +1,14 @@
-# Vue 3 Reactivity: `ref<T>(val)` Demo
+# Vue 3 Reactivity: `reactive<T>(obj)` Demo
 
-This branch (`ref_reactive`) demonstrates Vue 3's foundational reactivity primitive: `ref()`.
+This branch (`reactive_reactive`) demonstrates Vue 3's deep object reactivity primitive: `reactive()`.
 
 ---
 
 ## 📌 Core Concept
 
-- **Wraps Any Value:** Primitives (`number`, `string`, `boolean`, etc.) or complex objects.
-- **The Box Model:** Returns a reactive container object: `{ value: T }`.
-- **Script vs Template:** Access via `.value` in `<script>`, but automatically unwrapped (no `.value` needed) in top-level `<template>`.
-- **Deep Reactivity for Objects:** When an object or array is passed, Vue internally converts it with `reactive()`. Replacing `.value` entirely (`user.value = newObj`) preserves reactivity.
+- **Deep ES6 Proxy:** Returns a deeply reactive proxy of a JavaScript object, array, `Map`, or `Set`.
+- **Direct Access:** No `.value` is required when reading or writing properties (`state.count++`).
+- **Objects Only:** Primitives cannot be wrapped directly by `reactive()` because proxies only intercept object property operations.
 
 ---
 
@@ -17,9 +16,9 @@ This branch (`ref_reactive`) demonstrates Vue 3's foundational reactivity primit
 
 ```sh
 # Switch to this branch
-git checkout ref_reactive
+git checkout reactive_reactive
 
-# Install dependencies (if not already installed)
+# Install dependencies (if needed)
 pnpm install
 
 # Start development server
@@ -30,28 +29,35 @@ pnpm dev
 
 ## 💡 Key Patterns Demonstrated
 
-### 1. Primitive State
+### 1. State Declaration & Mutation
 ```ts
-import { ref } from 'vue'
+import { reactive } from 'vue'
 
-const count = ref<number>(0)
-count.value++ // Requires .value in script
+const state = reactive({
+  count: 0,
+  user: { name: 'Chey Somatra', role: 'Dev' },
+  tags: ['Vue 3']
+})
+
+state.count++ // No .value needed
+state.user.role = 'Tech Lead' // Deep reactivity works
+state.tags.push('Reactivity')
 ```
 
-### 2. Deep Object Reactivity
+### 2. Preserving Reactivity with `toRefs`
 ```ts
-const user = ref({ name: 'Alice', score: 10 })
+import { toRefs } from 'vue'
 
-// In-place mutation
-user.value.score++
+// ❌ Destructuring breaks reactivity:
+// const { count } = state 
 
-// Full object replacement
-user.value = { name: 'Bob', score: 20 }
+// ✅ Preserves reactivity by converting properties to refs:
+const { count } = toRefs(state)
 ```
 
 ---
 
 ## ⚠️ Common Gotchas
 
-1. **Forgetting `.value` in script:** `count = 5` reassigns the local variable and breaks reactivity. Always use `count.value = 5`.
-2. **Template Unwrapping Limit:** Only top-level refs unwrap automatically in templates. Nested refs inside plain objects require `.value` in templates.
+1. **Reassigning the Root Object:** Reassigning `state = reactive(...)` breaks the reactivity link with templates. Always mutate properties in-place.
+2. **Direct Destructuring:** Copies primitive values out of the proxy, severing tracking. Use `toRefs()` instead.

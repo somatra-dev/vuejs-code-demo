@@ -1,32 +1,32 @@
 <template>
-  <div class="max-w-3xl mx-auto space-y-6">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-      <h1 class="text-2xl font-bold text-white tracking-tight">
-        Deep Dive: <code class="text-emerald-400 font-mono">ref&lt;T&gt;(val)</code>
+  <div class="max-w-md mx-auto space-y-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+      <h1 class="text-xl font-bold text-white tracking-tight">
+        Deep Dive: <code class="text-emerald-400 font-mono">reactive&lt;T&gt;(obj)</code>
       </h1>
-      <p class="text-sm text-slate-300 leading-relaxed">
-        The fundamental building block of Vue 3 Composition API. It wraps any value in a reactive container.
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Returns a deeply reactive ES6 Proxy of a JavaScript object, array, Map, or Set.
       </p>
 
-      <div class="space-y-4 pt-4 border-t border-slate-800 text-sm text-slate-300">
+      <div class="space-y-3 pt-3 border-t border-slate-800 text-xs text-slate-300">
         <div>
-          <h3 class="font-semibold text-emerald-400">1. Why Primitives Need a Box</h3>
-          <p class="text-slate-400 text-xs mt-1">
-            JavaScript variables holding primitives (like numbers or strings) only hold the raw value. When passed around, they are copied by value. By returning an object with a <code class="text-emerald-400 font-mono">.value</code> getter and setter, Vue can track when that value is accessed and trigger effects when it is modified.
+          <h3 class="font-semibold text-emerald-400">1. No `.value` Needed</h3>
+          <p class="text-slate-400 mt-0.5">
+            Since it returns a direct proxy of the object, you read and mutate properties directly: <code class="text-emerald-400 font-mono">state.count++</code>.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">2. Template Auto-Unwrapping</h3>
-          <p class="text-slate-400 text-xs mt-1">
-            When a <code class="text-emerald-400 font-mono">ref</code> is exposed as a top-level property in the template, Vue's template compiler automatically unwraps the <code class="text-emerald-400 font-mono">.value</code>. You can write <code class="text-emerald-400 font-mono">&#123;&#123; count &#125;&#125;</code> instead of <code class="text-emerald-400 font-mono">&#123;&#123; count.value &#125;&#125;</code>.
+          <h3 class="font-semibold text-emerald-400">2. Objects Only</h3>
+          <p class="text-slate-400 mt-0.5">
+            ES6 Proxies only intercept property access on objects. Passing primitives (<code class="text-slate-400 font-mono">reactive(0)</code>) will not work.
           </p>
         </div>
 
         <div>
-          <h3 class="font-semibold text-emerald-400">3. Objects Inside `ref()`</h3>
-          <p class="text-slate-400 text-xs mt-1">
-            Passing an object or array to <code class="text-emerald-400 font-mono">ref()</code> automatically turns the nested object into a deep reactive proxy via <code class="text-emerald-400 font-mono">reactive()</code>. You can replace the entire object using <code class="text-emerald-400 font-mono">state.value = newObj</code> without losing reactivity.
+          <h3 class="font-semibold text-emerald-400">3. Destructuring Pitfall</h3>
+          <p class="text-slate-400 mt-0.5">
+            Destructuring properties directly copies primitive values and severs reactivity. Use <code class="text-emerald-400 font-mono">toRefs(state)</code> or <code class="text-emerald-400 font-mono">toRef(state, 'key')</code> to keep reactive connections.
           </p>
         </div>
       </div>
