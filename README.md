@@ -1,66 +1,147 @@
-# Vue 3 State Management Showcase
+# Data Fetching: Composable Pattern
 
-A hands-on code comparison exploring the three primary state management approaches in Vue: **Composables**, **Pinia**, and **Vuex 4**, all built with **Vue 3**, **Vite**, and styled with **Tailwind CSS v4**.
-
----
-
-## 🌿 Demo Branches
-
-Each state management type has its own isolated, fully functional implementation on a dedicated branch suffixed by `_state_management`:
-
-| Branch Name | Approach | Overhead | TypeScript | DevTools | SSR Ready |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| [`composable_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/composable_state_management) | Native Composition API (`ref`, `computed`) | **0 KB** | First-class | Component-only | Requires manual scoping |
-| [`pinia_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/pinia_state_management) | Pinia Setup Store (Official Standard) | **~1.5 KB** | First-class (automatic) | Full time-travel | Yes (built-in hydration) |
-| [`vuex_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/vuex_state_management) | Vuex 4 Centralized Flux Store | **~10 KB** | Requires custom typing | Full time-travel | Yes |
+This branch demonstrates modern, library-grade data fetching and full **CRUD** for JSONPlaceholder posts using **Vue 3 Composables** (`usePosts` & `useFetch`), styled with **Tailwind CSS**.
 
 ---
 
-## 🏛️ The 4 Pillars Comparison
+## 🏛️ The 4 Pillars
 
-| Pillar | Composables | Pinia (Official Standard) | Vuex 4 (Legacy) |
-| :--- | :--- | :--- | :--- |
-| **WHAT** | Native Vue 3 reactivity functions (`ref`, `computed`) exported at module scope. | Official modular state management library designed specifically for Vue 3. | Legacy centralized Flux store originally designed for Vue 2 (adapted for Vue 3). |
-| **WHY** | Zero dependencies (0 KB), maximum flexibility, intuitive syntax. | Auto type inference, eliminates mutation boilerplate, modular code-splitting, DevTools support. | Strict predictability by enforcing that synchronous mutations must alter state. |
-| **WHEN** | Local/scoped state, UI components, reusable libraries, small-to-medium SPAs. | Medium-to-large production apps, cross-route business state, SSR/Nuxt apps, teams. | Legacy maintenance of older codebases (not recommended for new projects). |
-| **HOW** | Return reactive variables & mutator functions from custom hook functions. | Define stores with `defineStore()` using Setup Store or Option Store syntax. | `createStore()` with distinct `mutations`, `actions`, and `commit`/`dispatch`. |
+### 1. WHAT is it?
+Composables in Vue 3 encapsulate and reuse **stateful asynchronous logic**. Instead of writing repetitive `fetch()`, `isLoading`, `error`, and `AbortController` statements in every component, logic is abstracted into dedicated functions (`usePosts()`, `useFetch()`) that return reactive references.
 
----
+### 2. WHY use it?
+* **Zero Component Clutter:** Components focus purely on template rendering and user interaction.
+* **Peak Reusability:** Share the exact same API logic, types, and mutation methods across dozens of views.
+* **Adaptable Inputs (`MaybeRefOrGetter`):** Pass static strings, `ref`s, or dynamic getter functions (`() => url`) to trigger automatic, reactive refetching.
+* **Safe Cancellation & Memory Leak Protection:** Request signals are automatically aborted via `onScopeDispose()` when the consuming component unmounts.
+* **Testability:** Business logic and network handling can be unit tested independently of component DOM structures.
 
-## 🚀 How to Checkout and Run Each Demo
+### 3. WHEN to use it?
+* **Production Vue 3 Applications:** The standard, recommended architectural approach for handling HTTP requests in the Composition API.
+* **Entity & Domain Management:** Feature-based composables like `usePosts()`, `useAuth()`, or `useCart()`.
+* **Cross-Component Reusability:** Shared search inputs, modals, and detail drawers accessing common data endpoints.
 
-### 1. Composable Demo
-```sh
-git checkout composable_state_management
-pnpm install
-pnpm dev
+### 4. HOW does it work?
+
+#### 1. Generic Adaptable Composable (`src/composables/useFetch.ts`):
+```ts
+import { ref, watchEffect, toValue, onScopeDispose, type MaybeRefOrGetter } from 'vue'
+
+export function useFetch<T>(urlOrGetter: MaybeRefOrGetter<string>) {
+  const data = ref<T | null>(null)
+  const error = ref<string | null>(null)
+  const isLoading = ref<boolean>(false)
+  let controller: AbortController | null = null
+
+  const execute = async () => {
+    controller?.abort()
+    const url = toValue(urlOrGetter)
+    if (!url) return
+
+    controller = new AbortController()
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const res = await fetch(url, { signal: controller.signal })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      data.value = await res.json()
+    } catch (err: any) {
+      if (err.name !== 'AbortError') error.value = err.message
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  watchEffect((onCleanup) => {
+    onCleanup(() => controller?.abort())
+    execute()
+  })
+
+  onScopeDispose(() => controller?.abort())
+
+  return { data, error, isLoading, execute }
+}
 ```
 
-### 2. Pinia Demo
-```sh
-git checkout pinia_state_management
-pnpm install
-pnpm dev
+#### 2. Domain CRUD Composable (`src/composables/usePosts.ts`):
+```ts
+import { ref, onScopeDispose } from 'vue'
+import type { Post, PostInput } from '../types/post'
+
+export function usePosts() {
+  const posts = ref<Post[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function fetchPosts(limit = 8) {
+    isLoading.value = true
+    try {
+      const res = await fetch(`https://jsonplaceholder.typicode.com/posts?_limit=${limit}`)
+      if (!res.ok) throw new Error('Fetch failed')
+      posts.value = await res.json()
+    } catch (err: any) {
+      error.value = err.message
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function createPost(input: PostInput) { /* ... */ }
+  async function updatePost(id: number, input: PostInput) { /* ... */ }
+  async function deletePost(id: number) { /* ... */ }
+
+  return { posts, isLoading, error, fetchPosts, createPost, updatePost, deletePost }
+}
 ```
 
-### 3. Vuex 4 Demo
-```sh
-git checkout vuex_state_management
-pnpm install
-pnpm dev
+#### 3. Declarative Component Usage (`src/components/ComposablePostCrud.vue`):
+```vue
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { usePosts } from '@/composables/usePosts'
+
+// Clean destructuring without losing reactivity!
+const { posts, isLoading, error, fetchPosts, createPost, deletePost } = usePosts()
+
+onMounted(() => fetchPosts())
+</script>
+
+<template>
+  <div v-if="isLoading">Loading posts...</div>
+  <div v-else-if="error">{{ error }}</div>
+  <ul v-else>
+    <li v-for="post in posts" :key="post.id">
+      {{ post.title }}
+      <button @click="deletePost(post.id)">Delete</button>
+    </li>
+  </ul>
+</template>
 ```
 
 ---
 
-## 🛠️ Project Setup
+## ⚖️ Manual Fetch vs Composable Pattern Comparison
+
+| Feature | Manual Component Fetch | Composable Pattern (`usePosts`) |
+| :--- | :--- | :--- |
+| **Boilerplate** | High (repeated in every view) | Low (centralized in one function) |
+| **Reusability** | Low (locked inside component) | High (usable in components, stores, routes) |
+| **Separation of Concerns** | Mixed (UI + networking together) | Clean (UI template separated from API) |
+| **Cancellation Handling** | Must write `AbortController` manually | Handled automatically with `onScopeDispose` |
+| **Reactive Parameters** | Complex manual `watch()` logic | Native with `MaybeRefOrGetter` and `toValue()` |
+
+---
+
+## 🚀 How to Run the Demo
 
 ```sh
-# Install dependencies
+# 1. Install dependencies
 pnpm install
 
-# Start Vite dev server
+# 2. Run Vite dev server
 pnpm dev
 
-# Type-check and build for production
+# 3. Type-check & build
 pnpm build
 ```
