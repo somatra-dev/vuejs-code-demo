@@ -1,66 +1,110 @@
-# Vue 3 State Management Showcase
+# Data Fetching: Manual Fetch API
 
-A hands-on code comparison exploring the three primary state management approaches in Vue: **Composables**, **Pinia**, and **Vuex 4**, all built with **Vue 3**, **Vite**, and styled with **Tailwind CSS v4**.
-
----
-
-## 🌿 Demo Branches
-
-Each state management type has its own isolated, fully functional implementation on a dedicated branch suffixed by `_state_management`:
-
-| Branch Name | Approach | Overhead | TypeScript | DevTools | SSR Ready |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| [`composable_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/composable_state_management) | Native Composition API (`ref`, `computed`) | **0 KB** | First-class | Component-only | Requires manual scoping |
-| [`pinia_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/pinia_state_management) | Pinia Setup Store (Official Standard) | **~1.5 KB** | First-class (automatic) | Full time-travel | Yes (built-in hydration) |
-| [`vuex_state_management`](https://github.com/somatra-dev/vuejs-code-demo/tree/vuex_state_management) | Vuex 4 Centralized Flux Store | **~10 KB** | Requires custom typing | Full time-travel | Yes |
+This branch demonstrates raw HTTP operations and full **CRUD** for JSONPlaceholder posts using the browser's native **Fetch API** (`window.fetch`) in **Vue 3 (Composition API)**, styled with **Tailwind CSS**.
 
 ---
 
-## 🏛️ The 4 Pillars Comparison
+## 🏛️ The 4 Pillars
 
-| Pillar | Composables | Pinia (Official Standard) | Vuex 4 (Legacy) |
-| :--- | :--- | :--- | :--- |
-| **WHAT** | Native Vue 3 reactivity functions (`ref`, `computed`) exported at module scope. | Official modular state management library designed specifically for Vue 3. | Legacy centralized Flux store originally designed for Vue 2 (adapted for Vue 3). |
-| **WHY** | Zero dependencies (0 KB), maximum flexibility, intuitive syntax. | Auto type inference, eliminates mutation boilerplate, modular code-splitting, DevTools support. | Strict predictability by enforcing that synchronous mutations must alter state. |
-| **WHEN** | Local/scoped state, UI components, reusable libraries, small-to-medium SPAs. | Medium-to-large production apps, cross-route business state, SSR/Nuxt apps, teams. | Legacy maintenance of older codebases (not recommended for new projects). |
-| **HOW** | Return reactive variables & mutator functions from custom hook functions. | Define stores with `defineStore()` using Setup Store or Option Store syntax. | `createStore()` with distinct `mutations`, `actions`, and `commit`/`dispatch`. |
+### 1. WHAT is it?
+Manual data fetching means invoking `window.fetch()` directly inside component methods, event handlers, or lifecycle hooks (`onMounted`), binding the asynchronous results directly to component-level reactive primitives (`ref`, `reactive`).
 
----
+### 2. WHY use it?
+* **Zero Abstractions (0 KB):** Uses pure browser standards without external dependencies or heavy wrapper layers.
+* **Granular Control:** Direct configuration of headers, HTTP methods (`GET`, `POST`, `PUT`, `DELETE`), caching policies, and signal cancellation via `AbortController`.
+* **Great for Learning & Prototyping:** Makes the underlying browser network lifecycle clear and explicit before introducing abstraction layers.
 
-## 🚀 How to Checkout and Run Each Demo
+### 3. WHEN to use it?
+* **Quick prototypes & single-page experiments:** When setting up composables or store layers is unnecessary overhead.
+* **One-off specialized requests:** Specialized endpoints like file streaming or manual upload endpoints with unique headers.
+* ⚠️ **Trade-off in Production:** Leads to repetitive boilerplate (`isLoading`, `error`, `try/catch/finally`, `AbortController`) across multiple components. For production apps, use the **Composable Pattern** (see the [`composable_fetching_data`](https://github.com/somatra-dev/vuejs-code-demo/tree/composable_fetching_data) branch).
 
-### 1. Composable Demo
-```sh
-git checkout composable_state_management
-pnpm install
-pnpm dev
+### 4. HOW does it work?
+
+#### Key Fetch API Mechanics & Gotchas:
+1. **Manual `response.ok` Check:** Native `fetch()` does **not** reject promises on HTTP `404` or `500` errors. You must explicitly verify `if (!response.ok) throw new Error(...)`.
+2. **Cancellation with `AbortController`:** Requests should be aborted if a component unmounts (`onUnmounted`) or when a previous query is superseded to prevent race conditions.
+3. **Local State Synchronization:** When testing against mocked REST APIs like JSONPlaceholder, local state mutations simulate immediate CRUD updates in the UI.
+
+#### CRUD Code Blueprints:
+
+```ts
+import { ref, onMounted, onUnmounted } from 'vue'
+
+const posts = ref([])
+const isLoading = ref(false)
+const error = ref(null)
+let controller: AbortController | null = null
+
+// 1. READ (GET)
+async function fetchPosts() {
+  controller?.abort()
+  controller = new AbortController()
+  isLoading.value = true
+  error.value = null
+
+  try {
+    const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=10', {
+      signal: controller.signal
+    })
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`)
+    posts.value = await res.json()
+  } catch (err: any) {
+    if (err.name !== 'AbortError') error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 2. CREATE (POST)
+async function createPost(newPostData: { title: string; body: string; userId: number }) {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    body: JSON.stringify(newPostData),
+    headers: { 'Content-type': 'application/json; charset=UTF-8' }
+  })
+  if (!res.ok) throw new Error('Create failed')
+  const created = await res.json()
+  posts.value.unshift(created) // Sync UI
+}
+
+// 3. UPDATE (PUT)
+async function updatePost(id: number, updatedData: { title: string; body: string; userId: number }) {
+  const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(updatedData),
+    headers: { 'Content-type': 'application/json; charset=UTF-8' }
+  })
+  if (!res.ok) throw new Error('Update failed')
+  const updated = await res.json()
+  const idx = posts.value.findIndex(p => p.id === id)
+  if (idx !== -1) posts.value[idx] = updated
+}
+
+// 4. DELETE (DELETE)
+async function deletePost(id: number) {
+  const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
+    method: 'DELETE'
+  })
+  if (!res.ok) throw new Error('Delete failed')
+  posts.value = posts.value.filter(p => p.id !== id)
+}
+
+onMounted(fetchPosts)
+onUnmounted(() => controller?.abort())
 ```
 
-### 2. Pinia Demo
-```sh
-git checkout pinia_state_management
-pnpm install
-pnpm dev
-```
-
-### 3. Vuex 4 Demo
-```sh
-git checkout vuex_state_management
-pnpm install
-pnpm dev
-```
-
 ---
 
-## 🛠️ Project Setup
+## 🚀 How to Run the Demo
 
 ```sh
-# Install dependencies
+# 1. Install dependencies
 pnpm install
 
-# Start Vite dev server
+# 2. Run Vite dev server
 pnpm dev
 
-# Type-check and build for production
+# 3. Type-check & build
 pnpm build
 ```
